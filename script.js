@@ -47,7 +47,7 @@ puzzles.forEach((p, idx) => {
 });
 updateCountUI();
 
-// ===== Função para placeholder de anúncio =====
+// ===== Placeholder do anúncio =====
 function showAd(card){
   if(card.querySelector('.ad')) return;
   const ad = document.createElement('div'); ad.className = 'ad';
