@@ -13,7 +13,7 @@ const puzzles = [
 ];
 
 // ===== Contador de respostas =====
-const sessionKey = 'reveals_count_v5';
+const sessionKey = 'reveals_count_v6';
 function getSessionCount(){ return Number(sessionStorage.getItem(sessionKey) || 0); }
 function setSessionCount(v){ sessionStorage.setItem(sessionKey, String(v)); updateCountUI(); }
 function incrementSessionCount(){
@@ -62,15 +62,25 @@ function createCard(idx){
   const ans = document.createElement('div'); ans.className = 'answer'; ans.textContent = p.a;
 
   btn.onclick = () => {
-    if(ans.classList.contains('show')){
-      ans.classList.remove('show');
-      setTimeout(()=> { ans.style.display = 'none'; }, 300);
-      return;
-    }
-    ans.style.display = 'block';
-    setTimeout(()=> { ans.classList.add('show'); }, 10);
+    if(ans.classList.contains('show')) return;
+
     const newCount = incrementSessionCount();
-    if(newCount % 3 === 0){ showAd(card); }
+
+    // Se for múltiplo de 3 -> delay de 5s antes de mostrar resposta + anúncio
+    if(newCount % 3 === 0){
+      btn.disabled = true;
+      btn.textContent = 'Aguarde 5 segundos...';
+      setTimeout(() => {
+        ans.style.display = 'block';
+        setTimeout(()=> ans.classList.add('show'), 10);
+        showAd(card);
+        btn.disabled = false;
+        btn.textContent = 'Ver resposta';
+      }, 5000);
+    } else {
+      ans.style.display = 'block';
+      setTimeout(()=> ans.classList.add('show'), 10);
+    }
   };
 
   card.appendChild(q);
