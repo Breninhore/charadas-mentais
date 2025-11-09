@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Charadas + Memória — MVP</title>
+  <style>
+    body { font-family: Inter, system-ui, Arial; margin:0; padding:16px; background:#f7f7fb; color:#111; }
+    .container { max-width:800px; margin:0 auto; }
+    header { text-align:center; margin-bottom:12px; }
+    .card { background:white; padding:12px; border-radius:10px; box-shadow:0 6px 18px rgba(20,20,40,0.06); margin-bottom:12px; }
+    .question { font-weight:700; margin-bottom:8px; }
+    .answer { display:none; margin-top:8px; padding:10px; background:#eef6ff; border-radius:8px; }
+    button { background:#222; color:white; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; }
+    .ad { display:none; margin:12px 0; padding:14px; border-radius:10px; text-align:center; border:2px dashed #cfcfcf; background:linear-gradient(90deg,#fff,#fcfcff); }
+    .meta { font-size:13px; color:#666; margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
+    .topbar { display:flex; gap:8px; justify-content:center; margin-bottom:12px; }
+    a.small { font-size:13px; color:#055; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Charadas & Memória — MVP</h1>
+      <p class="meta">Clique em "Ver resposta". A cada 3 respostas aparece um anúncio (placeholder).</p>
+      <div class="topbar">
+        <div id="countInfo">Respostas vistas nessa sessão: 0</div>
+      </div>
+    </header>
+
+    <div id="list"></div>
+
+    <div style="text-align:center; margin-top:18px;">
+      <a class="small" href="#" onclick="location.reload();">Recarregar</a>
+    </div>
+  </div>
+
+  <script>
+    // ===== Dados iniciais: 10 charadas com respostas =====
+    const puzzles = [
+      { q: "O que tem quatro rodas e voa?", a: "Um caminhão de lixo em sonho (piada clássica)." },
+      { q: "O que é que quanto mais se tira, maior fica?", a: "Buraco." },
+      { q: "O que é que tem dentes mas não morde?", a: "Pente." },
+      { q: "O que corre ao redor da casa mas nunca se move?", a: "A cerca." },
+      { q: "Qual palavra fica errada no dicionário?", a: "Errada." },
+      { q: "O que cai em pé e corre deitado?", a: "Chuva." },
+      { q: "Qual é o livro que se lê pelas pontas?", a: "Livro de contos (contos = pontas) — variações / piada)." },
+      { q: "O que é que tem cabeça e não tem corpo?", a: "Alfinete." },
+      { q: "O que é que tem um pescoço mas não tem cabeça?", a: "Garrafa." },
+      { q: "O que é que passa na frente do sol e ainda deixa sombra?", a: "Nuvem." }
+    ];
+
+    // ===== sessão: contador de reveals =====
+    const sessionKey = 'reveals_count_v1';
+    function getSessionCount(){ return Number(sessionStorage.getItem(sessionKey) || 0); }
+    function setSessionCount(v){ sessionStorage.setItem(sessionKey, String(v)); updateCountUI(); }
+    function incrementSessionCount(){
+      const v = getSessionCount() + 1;
+      setSessionCount(v);
+      return v;
+    }
+    function updateCountUI(){
+      document.getElementById('countInfo').textContent = 'Respostas vistas nessa sessão: ' + getSessionCount();
+    }
+
+    // ===== render =====
+    const list = document.getElementById('list');
+    puzzles.forEach((p, idx) => {
+      const card = document.createElement('div'); card.className = 'card';
+      const q = document.createElement('div'); q.className = 'question'; q.textContent = (idx+1) + '. ' + p.q;
+      const btn = document.createElement('button'); btn.textContent = 'Ver resposta';
+      const ans = document.createElement('div'); ans.className = 'answer'; ans.textContent = p.a;
+      btn.onclick = () => {
+        if(ans.style.display === 'block'){ ans.style.display = 'none'; return; }
+        ans.style.display = 'block';
+        const newCount = incrementSessionCount();
+        // se for múltiplo de 3 -> mostrar anúncio placeholder
+        if(newCount % 3 === 0){
+          showAd(card);
+        }
+      };
+      card.appendChild(q);
+      card.appendChild(btn);
+      card.appendChild(ans);
+      list.appendChild(card);
+    });
+    updateCountUI();
+
+    // ===== função para mostrar placeholder de anúncio =====
+    function showAd(card){
+      // evita mostrar mais de um ad por card
+      if(card.querySelector('.ad')) return;
+      const ad = document.createElement('div'); ad.className = 'ad';
+      ad.innerHTML = '<strong>Anúncio (placeholder)</strong><div style="font-size:13px; margin-top:6px;">Aqui um anúncio real apareceria. Não incentive cliques.</div>';
+      card.appendChild(ad);
+      // animação simples: mostra por 6s e some
+      ad.style.display = 'block';
+      setTimeout(()=> { ad.style.display = 'none'; }, 6000);
+    }
+  </script>
+</body>
+</html>
