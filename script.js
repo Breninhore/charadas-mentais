@@ -13,7 +13,7 @@ const puzzles = [
 ];
 
 // ===== Contador de respostas =====
-const sessionKey = 'reveals_count_v4';
+const sessionKey = 'reveals_count_v5';
 function getSessionCount(){ return Number(sessionStorage.getItem(sessionKey) || 0); }
 function setSessionCount(v){ sessionStorage.setItem(sessionKey, String(v)); updateCountUI(); }
 function incrementSessionCount(){
@@ -25,23 +25,50 @@ function updateCountUI(){
   document.getElementById('countInfo').textContent = 'Respostas vistas nessa sessão: ' + getSessionCount();
 }
 
-// ===== Lógica de charada única =====
+// ===== Lógica charada aleatória =====
+let shownIndices = [];
 let currentIndex = 0;
 
 const list = document.getElementById('list');
 const nextBtn = document.getElementById('nextPuzzleBtn');
 
+function getRandomIndex(){
+  if(shownIndices.length >= puzzles.length) shownIndices = [];
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * puzzles.length);
+  } while(shownIndices.includes(idx));
+  shownIndices.push(idx);
+  return idx;
+}
+
 function showPuzzle(idx){
-  list.innerHTML = ''; // limpa a charada anterior
+  const oldCard = list.querySelector('.card');
+  if(oldCard){
+    oldCard.style.opacity = 0;
+    setTimeout(() => { list.innerHTML = ''; createCard(idx); }, 300);
+  } else {
+    createCard(idx);
+  }
+}
+
+function createCard(idx){
   const p = puzzles[idx];
   const card = document.createElement('div'); card.className = 'card';
+  card.style.opacity = 0;
+
   const q = document.createElement('div'); q.className = 'question'; q.textContent = (idx+1) + '. ' + p.q;
   const btn = document.createElement('button'); btn.textContent = 'Ver resposta';
   const ans = document.createElement('div'); ans.className = 'answer'; ans.textContent = p.a;
 
   btn.onclick = () => {
-    if(ans.style.display === 'block'){ ans.style.display = 'none'; return; }
+    if(ans.classList.contains('show')){
+      ans.classList.remove('show');
+      setTimeout(()=> { ans.style.display = 'none'; }, 300);
+      return;
+    }
     ans.style.display = 'block';
+    setTimeout(()=> { ans.classList.add('show'); }, 10);
     const newCount = incrementSessionCount();
     if(newCount % 3 === 0){ showAd(card); }
   };
@@ -50,15 +77,17 @@ function showPuzzle(idx){
   card.appendChild(btn);
   card.appendChild(ans);
   list.appendChild(card);
+
+  setTimeout(()=> { card.style.opacity = 1; }, 10);
 }
 
-// Mostra a primeira charada
+// Mostra a primeira charada aleatória
+currentIndex = getRandomIndex();
 showPuzzle(currentIndex);
 
 // Botão “Próxima charada”
 nextBtn.onclick = () => {
-  currentIndex++;
-  if(currentIndex >= puzzles.length) currentIndex = 0; // volta pro começo
+  currentIndex = getRandomIndex();
   showPuzzle(currentIndex);
 };
 
