@@ -1,4 +1,4 @@
-/* ===== Reset básico ===== */
+/* Reset básico */
 * { box-sizing: border-box; margin:0; padding:0; }
 
 body {
@@ -23,7 +23,8 @@ header .meta { font-size:14px; color:#aaa; margin-bottom:12px; }
   border-radius:12px;
   box-shadow:0 6px 18px rgba(0,0,0,0.4);
   margin-bottom:16px;
-  transition: transform 0.2s;
+  transition: transform 0.2s, opacity 0.3s;
+  opacity:1;
 }
 
 .card:hover { transform: translateY(-3px); }
@@ -38,6 +39,13 @@ header .meta { font-size:14px; color:#aaa; margin-bottom:12px; }
   border-radius:8px;
   color:#0ff;
   font-weight:500;
+  transition: opacity 0.3s;
+  opacity:0;
+}
+
+.answer.show {
+  display:block;
+  opacity:1;
 }
 
 button {
@@ -67,4 +75,3 @@ button:hover { background:#02b570; transform: scale(1.05); }
 
 a.small { font-size:13px; color:#0ff; text-decoration:none; }
 a.small:hover { text-decoration:underline; }
-
