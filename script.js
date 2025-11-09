@@ -13,7 +13,7 @@ const puzzles = [
 ];
 
 // ===== Contador de respostas =====
-const sessionKey = 'reveals_count_v3';
+const sessionKey = 'reveals_count_v4';
 function getSessionCount(){ return Number(sessionStorage.getItem(sessionKey) || 0); }
 function setSessionCount(v){ sessionStorage.setItem(sessionKey, String(v)); updateCountUI(); }
 function incrementSessionCount(){
@@ -25,9 +25,15 @@ function updateCountUI(){
   document.getElementById('countInfo').textContent = 'Respostas vistas nessa sessão: ' + getSessionCount();
 }
 
-// ===== Renderizar charadas =====
+// ===== Lógica de charada única =====
+let currentIndex = 0;
+
 const list = document.getElementById('list');
-puzzles.forEach((p, idx) => {
+const nextBtn = document.getElementById('nextPuzzleBtn');
+
+function showPuzzle(idx){
+  list.innerHTML = ''; // limpa a charada anterior
+  const p = puzzles[idx];
   const card = document.createElement('div'); card.className = 'card';
   const q = document.createElement('div'); q.className = 'question'; q.textContent = (idx+1) + '. ' + p.q;
   const btn = document.createElement('button'); btn.textContent = 'Ver resposta';
@@ -44,8 +50,17 @@ puzzles.forEach((p, idx) => {
   card.appendChild(btn);
   card.appendChild(ans);
   list.appendChild(card);
-});
-updateCountUI();
+}
+
+// Mostra a primeira charada
+showPuzzle(currentIndex);
+
+// Botão “Próxima charada”
+nextBtn.onclick = () => {
+  currentIndex++;
+  if(currentIndex >= puzzles.length) currentIndex = 0; // volta pro começo
+  showPuzzle(currentIndex);
+};
 
 // ===== Placeholder do anúncio =====
 function showAd(card){
@@ -57,3 +72,4 @@ function showAd(card){
   setTimeout(()=> { ad.style.display = 'none'; }, 6000);
 }
 
+updateCountUI();
