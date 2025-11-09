@@ -12,74 +12,70 @@ const puzzles = [
   { q: "O que é que passa na frente do sol e ainda deixa sombra?", a: "Nuvem." }
 ];
 
-// ===== Contador de respostas =====
-const sessionKey = 'reveals_count_v6';
-function getSessionCount(){ return Number(sessionStorage.getItem(sessionKey) || 0); }
-function setSessionCount(v){ sessionStorage.setItem(sessionKey, String(v)); updateCountUI(); }
-function incrementSessionCount(){
-  const v = getSessionCount() + 1;
-  setSessionCount(v);
-  return v;
-}
+// ===== LocalStorage para progresso =====
+const storageKey = 'charadasProgress_v1';
+let progress = JSON.parse(localStorage.getItem(storageKey)) || { count:0, shownIndices: [] };
+
+function saveProgress() { localStorage.setItem(storageKey, JSON.stringify(progress)); }
+
+// ===== Atualiza contador =====
 function updateCountUI(){
-  document.getElementById('countInfo').textContent = 'Respostas vistas nessa sessão: ' + getSessionCount();
+  document.getElementById('countInfo').textContent = 'Respostas vistas: ' + progress.count;
 }
 
-// ===== Lógica charada aleatória =====
-let shownIndices = [];
-let currentIndex = 0;
-
-const list = document.getElementById('list');
-const nextBtn = document.getElementById('nextPuzzleBtn');
-
+// ===== Escolhe charada aleatória não repetida =====
 function getRandomIndex(){
-  if(shownIndices.length >= puzzles.length) shownIndices = [];
+  if(progress.shownIndices.length >= puzzles.length) progress.shownIndices = [];
   let idx;
-  do {
-    idx = Math.floor(Math.random() * puzzles.length);
-  } while(shownIndices.includes(idx));
-  shownIndices.push(idx);
+  do { idx = Math.floor(Math.random() * puzzles.length); } 
+  while(progress.shownIndices.includes(idx));
+  progress.shownIndices.push(idx);
+  saveProgress();
   return idx;
 }
+
+// ===== Renderiza card =====
+const list = document.getElementById('list');
+const nextBtn = document.getElementById('nextPuzzleBtn');
 
 function showPuzzle(idx){
   const oldCard = list.querySelector('.card');
   if(oldCard){
     oldCard.style.opacity = 0;
-    setTimeout(() => { list.innerHTML = ''; createCard(idx); }, 300);
-  } else {
-    createCard(idx);
-  }
+    setTimeout(()=> { list.innerHTML=''; createCard(idx); }, 300);
+  } else { createCard(idx); }
 }
 
 function createCard(idx){
   const p = puzzles[idx];
-  const card = document.createElement('div'); card.className = 'card';
+  const card = document.createElement('div'); card.className='card';
   card.style.opacity = 0;
 
-  const q = document.createElement('div'); q.className = 'question'; q.textContent = (idx+1) + '. ' + p.q;
-  const btn = document.createElement('button'); btn.textContent = 'Ver resposta';
-  const ans = document.createElement('div'); ans.className = 'answer'; ans.textContent = p.a;
+  const q = document.createElement('div'); q.className='question'; q.textContent=(idx+1)+'. '+p.q;
+  const btn = document.createElement('button'); btn.textContent='Ver resposta';
+  const ans = document.createElement('div'); ans.className='answer'; ans.textContent=p.a;
 
   btn.onclick = () => {
     if(ans.classList.contains('show')) return;
 
-    const newCount = incrementSessionCount();
+    progress.count += 1;
+    saveProgress();
+    updateCountUI();
 
-    // Se for múltiplo de 3 -> delay de 5s antes de mostrar resposta + anúncio
-    if(newCount % 3 === 0){
-      btn.disabled = true;
-      btn.textContent = 'Aguarde 5 segundos...';
-      setTimeout(() => {
-        ans.style.display = 'block';
-        setTimeout(()=> ans.classList.add('show'), 10);
+    // Se múltiplo de 3 → delay 5s + anúncio
+    if(progress.count % 3 === 0){
+      btn.disabled=true;
+      btn.textContent='Aguarde 5 segundos...';
+      setTimeout(()=>{
+        ans.style.display='block';
+        setTimeout(()=>ans.classList.add('show'),10);
         showAd(card);
-        btn.disabled = false;
-        btn.textContent = 'Ver resposta';
-      }, 5000);
+        btn.disabled=false;
+        btn.textContent='Ver resposta';
+      },5000);
     } else {
-      ans.style.display = 'block';
-      setTimeout(()=> ans.classList.add('show'), 10);
+      ans.style.display='block';
+      setTimeout(()=>ans.classList.add('show'),10);
     }
   };
 
@@ -88,27 +84,26 @@ function createCard(idx){
   card.appendChild(ans);
   list.appendChild(card);
 
-  setTimeout(()=> { card.style.opacity = 1; }, 10);
+  setTimeout(()=>{ card.style.opacity=1; },10);
 }
-
-// Mostra a primeira charada aleatória
-currentIndex = getRandomIndex();
-showPuzzle(currentIndex);
-
-// Botão “Próxima charada”
-nextBtn.onclick = () => {
-  currentIndex = getRandomIndex();
-  showPuzzle(currentIndex);
-};
 
 // ===== Placeholder do anúncio =====
 function showAd(card){
   if(card.querySelector('.ad')) return;
-  const ad = document.createElement('div'); ad.className = 'ad';
-  ad.innerHTML = '<strong>Anúncio (placeholder)</strong><div style="margin-top:6px; font-size:0.9rem;">Aqui um anúncio real apareceria.</div>';
+  const ad=document.createElement('div'); ad.className='ad';
+  ad.innerHTML='<strong>Anúncio (placeholder)</strong><div style="margin-top:6px; font-size:0.9rem;">Aqui um anúncio real apareceria.</div>';
   card.appendChild(ad);
-  ad.style.display = 'block';
-  setTimeout(()=> { ad.style.display = 'none'; }, 6000);
+  ad.style.display='block';
+  setTimeout(()=>{ ad.style.display='none'; },6000);
 }
+
+// ===== Inicialização =====
+let currentIndex = getRandomIndex();
+showPuzzle(currentIndex);
+
+nextBtn.onclick = () => {
+  currentIndex = getRandomIndex();
+  showPuzzle(currentIndex);
+};
 
 updateCountUI();
